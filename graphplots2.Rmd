@@ -1,0 +1,42 @@
+---
+title: "Computing Joint Normal Density"
+author: "Riva"
+date: "December 26, 2016"
+output: html_document
+runtime: shiny
+---
+
+```{r data, message=FALSE}
+library('yaml')  
+library('knitr')
+library(ggplot2)
+library(dplyr)
+library(MASS)
+```
+Generating 5000 "heights" and "grades" in a normal distribution.
+```{r computations}
+grades <- rnorm(5000, mean=75, sd=10)
+height <- rnorm(5000, mean=69.7, sd=2.5) #in inches
+experiment = data.frame(cbind(grades, height))
+```
+Histograms:
+```{r graphs}
+
+ggplot(experiment, aes(grades)) + geom_histogram(binwidth=1, colour="black", fill="white") + theme_bw()
+ggplot(experiment, aes(height)) + geom_histogram(binwidth=1, colour="black", fill="white") + theme_bw()
+
+bivn.kde <- kde2d(grades, height, n = 50)
+persp(bivn.kde, phi = 20, theta = 40, expand=.45, col="lightblue", xlab="x", ylab="y", zlab="z", axes=TRUE) #, ticktype = "detailed", nticks=2
+
+```
+```{r count, echo=FALSE}
+numericInput("hlb", "Heights greater than:", 67.2)
+numericInput("hub", "Heights less than", 72.2)
+numericInput("glb", "Grades greater than:", 65)
+numericInput("gub", "Grades less than:", 85)
+
+renderTable({
+  sub <- data.frame(subset(experiment, grades<input$gub & grades>input$glb & height>input$hlb & height<input$hub))
+  length(sub[[1]])/length(experiment[[1]])
+})
+```
